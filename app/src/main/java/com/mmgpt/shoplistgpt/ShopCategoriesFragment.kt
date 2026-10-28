@@ -46,9 +46,13 @@ class ShopCategoriesFragment : Fragment() {
                 val child = binding.recyclerView.findChildViewUnder(x, y)
                 val position = child?.let { binding.recyclerView.getChildAdapterPosition(it) } ?: RecyclerView.NO_POSITION
                 if (position != RecyclerView.NO_POSITION) {
-                    val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
-                    viewPager.currentItem = position
-                    return true
+                    val item = adapter.currentList.getOrNull(position)
+                    if (item?.isHeading == true) {
+                        val index = position - 1
+                        val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
+                        viewPager.currentItem = index + 1
+                        return true
+                    }
                 }
                 return super.onDoubleTap(e)
             }

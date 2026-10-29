@@ -112,6 +112,14 @@ class MainActivity : AppCompatActivity() {
                             binding.viewPager.currentItem = 0
                             true
                         }
+                        deltaX < -threshold && binding.viewPager.currentItem > 0 -> {
+                            binding.viewPager.currentItem = binding.viewPager.currentItem - 1
+                            true
+                        }
+                        deltaX > threshold && binding.viewPager.currentItem < lastIndex -> {
+                            binding.viewPager.currentItem = binding.viewPager.currentItem + 1
+                            true
+                        }
                         else -> false
                     }
                 }
@@ -340,6 +348,10 @@ class MainActivity : AppCompatActivity() {
     private fun showShopping() {
         binding.startPage.root.visibility = View.GONE
         binding.viewPager.visibility = View.VISIBLE
+        pagerAdapter = CategoryPagerAdapter(this, viewModel, false)
+        binding.viewPager.adapter = pagerAdapter
+        binding.viewPager.currentItem = 0
+        inPlanMode = false
         val date = viewModel.planDate.value
         val title = if (date != null) {
             val fmt = DateTimeFormatter.ofPattern("d MMM")

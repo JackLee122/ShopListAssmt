@@ -38,21 +38,12 @@ class ShopCategoriesFragment : Fragment() {
 
         val gestureDetector = GestureDetectorCompat(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                // Convert raw screen coordinates to RecyclerView's coordinate system
-                val location = IntArray(2)
-                binding.recyclerView.getLocationOnScreen(location)
-                val x = e.rawX - location[0]
-                val y = e.rawY - location[1]
-                val child = binding.recyclerView.findChildViewUnder(x, y)
+                val child = binding.recyclerView.findChildViewUnder(e.x, e.y)
                 val position = child?.let { binding.recyclerView.getChildAdapterPosition(it) } ?: RecyclerView.NO_POSITION
                 if (position != RecyclerView.NO_POSITION) {
-                    val item = adapter.currentList.getOrNull(position)
-                    if (item?.isHeading == true) {
-                        val index = position - 1
-                        val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
-                        viewPager.currentItem = index + 1
-                        return true
-                    }
+                    val viewPager = requireActivity().findViewById<ViewPager2>(R.id.viewPager)
+                    viewPager.currentItem = position
+                    return true
                 }
                 return super.onDoubleTap(e)
             }

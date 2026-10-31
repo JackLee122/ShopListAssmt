@@ -1,13 +1,11 @@
 package com.mmgpt.shoplistgpt
 
 import android.os.Bundle
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.GestureDetectorCompat
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -36,31 +34,7 @@ class PlanCategoriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        lateinit var adapter: ItemAdapter
-        val dragHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
-        ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                val from = viewHolder.adapterPosition
-                val to = target.adapterPosition
-                val itemFrom = adapter.currentList.getOrNull(from)
-                val itemTo = adapter.currentList.getOrNull(to)
-                if (itemFrom?.isPlaceholder == true || itemTo?.isPlaceholder == true) return false
-                viewModel.reorderCategory(from - 1, to - 1)
-                adapter.moveItem(from, to)
-                return true
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
-
-            override fun isLongPressDragEnabled(): Boolean = false
-        })
-
-        adapter = ItemAdapter(
+        val adapter = ItemAdapter(
             onAction = { item, action ->
                 val index = adapter.currentList.indexOf(item) - 1
                 when (action) {
@@ -70,12 +44,16 @@ class PlanCategoriesFragment : Fragment() {
                 }
             },
             mode = ItemAdapter.Mode.PLAN,
-            dragStart = { vh -> dragHelper.startDrag(vh) },
+            dragStart = null,
             onAdd = { position, name ->
                 viewModel.addCategory(position - 1, name)
             }
         )
         binding.recyclerView.adapter = adapter
+        val dragHelper = PlanDragHelper(adapter) { from, to ->
+            viewModel.reorderCategory(from - 1, to - 1)
+            true
+        }
         dragHelper.attachToRecyclerView(binding.recyclerView)
 
         val gestureDetector = GestureDetectorCompat(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
@@ -144,4 +122,3 @@ class PlanCategoriesFragment : Fragment() {
         _binding = null
     }
 }
-

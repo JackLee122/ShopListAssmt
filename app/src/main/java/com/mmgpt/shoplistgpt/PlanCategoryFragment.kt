@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mmgpt.shoplistgpt.adapter.ItemAdapter
@@ -39,31 +38,7 @@ class PlanCategoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.chkSelectAll.visibility = View.VISIBLE
-        lateinit var adapter: ItemAdapter
-        val dragHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
-        ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                val from = viewHolder.adapterPosition
-                val to = target.adapterPosition
-                val itemFrom = adapter.currentList.getOrNull(from)
-                val itemTo = adapter.currentList.getOrNull(to)
-                if (itemFrom?.isPlaceholder == true || itemTo?.isPlaceholder == true) return false
-                viewModel.reorderItem(index, from - 1, to - 1)
-                adapter.moveItem(from, to)
-                return true
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
-
-            override fun isLongPressDragEnabled(): Boolean = false
-        })
-
-        adapter = ItemAdapter(
+        val adapter = ItemAdapter(
             onAction = { item, action ->
                 when (action) {
                     ItemAdapter.Action.CHECK -> viewModel.checkItem(item)
@@ -73,12 +48,16 @@ class PlanCategoryFragment : Fragment() {
                 }
             },
             mode = ItemAdapter.Mode.PLAN,
-            dragStart = { vh -> dragHelper.startDrag(vh) },
+            dragStart = null,
             onAdd = { position, name ->
                 viewModel.addItem(index, position - 1, name)
             }
         )
         binding.recyclerView.adapter = adapter
+        val dragHelper = PlanDragHelper(adapter) { from, to ->
+            viewModel.reorderItem(index, from - 1, to - 1)
+            true
+        }
         dragHelper.attachToRecyclerView(binding.recyclerView)
 
         viewModel.categories.observe(viewLifecycleOwner) { list ->
